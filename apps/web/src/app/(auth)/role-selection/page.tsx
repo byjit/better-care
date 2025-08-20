@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/utils/trpc";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function RoleSelectionPage() {
   const [selectedRole, setSelectedRole] = useState<"patient" | "doctor" | null>(null);
@@ -31,7 +32,7 @@ export default function RoleSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Choose Your Role</CardTitle>
@@ -41,16 +42,9 @@ export default function RoleSelectionPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
-            <Card 
-              className={`cursor-pointer transition-colors ${
-                selectedRole === "patient" 
-                  ? "ring-2 ring-blue-500 bg-blue-50" 
-                  : "hover:bg-gray-50"
-              }`}
-              onClick={() => setSelectedRole("patient")}
-            >
+            <Card className={cn("cursor-pointer", selectedRole === "patient" && "border-primary")} onClick={() => setSelectedRole("patient")}>
               <CardContent className="p-6 text-center">
-                <div className="text-4xl mb-2">🏥</div>
+                <div className="text-4xl mb-2">👨‍💻</div>
                 <h3 className="font-semibold text-lg">Patient</h3>
                 <p className="text-sm text-gray-600 mt-2">
                   Seek medical consultations and connect with doctors
@@ -59,15 +53,11 @@ export default function RoleSelectionPage() {
             </Card>
 
             <Card 
-              className={`cursor-pointer transition-colors ${
-                selectedRole === "doctor" 
-                  ? "ring-2 ring-blue-500 bg-blue-50" 
-                  : "hover:bg-gray-50"
-              }`}
+              className={cn("cursor-pointer", selectedRole === "doctor" && "border-primary")}
               onClick={() => setSelectedRole("doctor")}
             >
               <CardContent className="p-6 text-center">
-                <div className="text-4xl mb-2">👩‍⚕️</div>
+                <div className="text-4xl mb-2">👨‍⚕️</div>
                 <h3 className="font-semibold text-lg">Doctor</h3>
                 <p className="text-sm text-gray-600 mt-2">
                   Provide medical consultations and help patients

@@ -15,8 +15,7 @@ export default function Providers({
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="dark"
       disableTransitionOnChange
     >
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
