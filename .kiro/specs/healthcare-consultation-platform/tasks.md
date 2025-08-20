@@ -22,8 +22,7 @@
   - _Requirements: 7.3, 2.1, 3.1_
 
 - [ ] 4. Develop patient channel management system
-  - Create PatientDashboard component with channel list and creation options
-  - Implement NewChannelDialog component for health issue channel creation
+  - Implement NewChannel Dialog component for health issue channel creation
   - Build ChannelList component with active/past channel categorization
   - Create tRPC channel router with create, getMyChannels, and status management endpoints
   - Add channel status indicators (waiting, active, ended) with proper styling
