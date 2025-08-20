@@ -2,12 +2,9 @@
 
 import * as React from "react"
 import {
-  Command,
-  Home,
   Images,
-  Leaf,
+  LayoutPanelLeft,
   Search,
-  Sparkles,
   SquarePen,
 } from "lucide-react"
 
@@ -19,7 +16,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import UserMenu from "./user-menu"
@@ -28,6 +24,11 @@ import Logo from "./logo"
 // This is sample data.
 const data = {
   navMain: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutPanelLeft,
+    },
     {
       title: "New Chat",
       url: "/ai",
@@ -39,8 +40,8 @@ const data = {
       icon: Search,
     },
     {
-      title: "Documents",
-      url: "/documents",
+      title: "Medical Records",
+      url: "/records",
       icon: Images,
     },
   ],

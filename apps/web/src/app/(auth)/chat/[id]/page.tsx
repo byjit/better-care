@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
+import { useParams } from 'next/navigation';
 
-export default function AIPage() {
+export default function ChatPage() {
+  const params = useParams<{ id: string }>();
   const [input, setInput] = useState("");
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({
-      api: `${process.env.NEXT_PUBLIC_SERVER_URL}/ai`,
+      api: `${process.env.NEXT_PUBLIC_SERVER_URL}/ai/${params.id}`, 
     }),
   });
 
@@ -30,7 +32,7 @@ export default function AIPage() {
   };
 
   return (
-    <div className="grid grid-rows-[1fr_auto] overflow-hidden w-full mx-auto p-4">
+    <div className="grid grid-rows-[1fr_auto] overflow-hidden w-full mx-auto p-4 h-full">
       <div className="overflow-y-auto space-y-4 pb-4">
         {messages.length === 0 ? (
           <div className="text-center text-muted-foreground mt-8">

@@ -14,8 +14,8 @@ The healthcare consultation platform is a comprehensive system that enables remo
 
 1. WHEN a user visits the registration page THEN the system SHALL provide google oauth button
 2. WHEN a user successfully registers THEN the system SHALL redirect them to a role selection page
-3. WHEN a user selects their role (patient or doctor) THEN the system SHALL save this role to their profile and redirect them to the appropriate dashboard
-4. WHEN a user attempts to login THEN the system SHALL authenticate their credentials and redirect them to their role-specific dashboard
+3. WHEN a user selects their role (patient or doctor) THEN the system SHALL save this role to their profile, updates the `onboard` field in the user relation to 0 and redirect them to the appropriate dashboard
+4. WHEN a user attempts to login and the onboard field is true THEN the system SHALL authenticate their credentials and redirect them to their role-specific dashboard
 5. IF a user has not selected a role THEN the system SHALL redirect them to the role selection page upon login
 
 ### Requirement 2: Patient Channel Management

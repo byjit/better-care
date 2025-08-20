@@ -15,6 +15,13 @@
       "when": 1755686028394,
       "tag": "0001_typical_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1755702411321,
+      "tag": "0002_needy_frightful_four",
+      "breakpoints": true
     }
   ]
 }

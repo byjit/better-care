@@ -41,6 +41,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44.2
         version: 0.44.4(@libsql/client@0.15.12)(@opentelemetry/api@1.9.0)(kysely@0.28.5)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.44.4(@libsql/client@0.15.12)(@opentelemetry/api@1.9.0)(kysely@0.28.5))(zod@4.0.17)
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -159,6 +162,9 @@ importers:
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.1.7(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      drizzle-zod:
+        specifier: ^0.8.3
+        version: 0.8.3(drizzle-orm@0.44.4(@libsql/client@0.15.12)(@opentelemetry/api@1.9.0)(kysely@0.28.5))(zod@4.0.17)
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.1)
@@ -2187,6 +2193,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.8.3:
+    resolution: {integrity: sha512-66yVOuvGhKJnTdiqj1/Xaaz9/qzOdRJADpDa68enqS6g3t0kpNkwNYjUuaeXgZfO/UWuIM9HIhSlJ6C5ZraMww==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.0 || ^4.0.0
 
   dts-resolver@2.1.1:
     resolution: {integrity: sha512-3BiGFhB6mj5Kv+W2vdJseQUYW+SKVzAFJL6YNP6ursbrwy1fXHRotfHi3xLNxe4wZl/K8qbAFeCDjZLjzqxxRw==}
@@ -4723,6 +4735,11 @@ snapshots:
       '@libsql/client': 0.15.12
       '@opentelemetry/api': 1.9.0
       kysely: 0.28.5
+
+  drizzle-zod@0.8.3(drizzle-orm@0.44.4(@libsql/client@0.15.12)(@opentelemetry/api@1.9.0)(kysely@0.28.5))(zod@4.0.17):
+    dependencies:
+      drizzle-orm: 0.44.4(@libsql/client@0.15.12)(@opentelemetry/api@1.9.0)(kysely@0.28.5)
+      zod: 4.0.17
 
   dts-resolver@2.1.1: {}
 

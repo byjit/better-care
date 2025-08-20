@@ -7,15 +7,13 @@
   - Set up database migrations and connection utilities
   - _Requirements: 8.1, 8.4_
 
-- [ ] 2. Implement authentication system with Google OAuth
-  - Configure Better-Auth with Google OAuth provider
-  - Create login page with Google OAuth button integration
+- [x] 2. Implement role selection page
   - Implement role selection page for post-authentication user setup
   - Create AuthGuard component for route protection
   - Set up tRPC auth router with session management and role update endpoints
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 3. Build core UI layout and navigation structure
+- [x] 3. Build core UI layout and navigation structure
   - Create AppLayout component with ChatGPT-inspired sidebar and main content area
   - Implement responsive Sidebar component using shadcn sidebar with collapsible functionality
   - Build Header component with user menu and logout functionality

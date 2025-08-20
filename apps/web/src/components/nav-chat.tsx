@@ -1,6 +1,5 @@
 import {
   ArrowUpRight,
-  Link,
   MoreHorizontal,
   StarOff,
   Trash2,
@@ -22,6 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 export function NavChat({
   chats,
@@ -40,9 +40,9 @@ export function NavChat({
         {chats.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url} title={item.name}>
+              <Link href={item.url} title={item.name}>
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
