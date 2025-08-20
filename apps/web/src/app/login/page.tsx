@@ -5,9 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
+import { trpc } from "@/utils/trpc";
+import { useEffect } from "react";
 
 export default function LoginPage() {
+
+  const { data: session, isLoading } = trpc.auth.getSession.useQuery();
   const router = useRouter();
+
+  useEffect(() => {
+    if (session) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
 
   const handleGoogleSignIn = async () => {
     try {

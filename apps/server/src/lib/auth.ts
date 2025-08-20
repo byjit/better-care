@@ -2,7 +2,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../db";
-import * as schema from "../db/schema/auth";
+import * as schema from "../db/schema";
 import { user } from "../db/schema/user";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Request } from "express";

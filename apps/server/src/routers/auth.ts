@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { protectedProcedure, publicProcedure, router } from "../lib/trpc";
 import { db } from "../db";
-import { user } from "../db/schema/auth";
+import { user } from "../db/schema";
 
 export const authRouter = router({
   getSession: publicProcedure.query(({ ctx }) => {
