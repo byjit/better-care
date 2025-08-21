@@ -25,6 +25,7 @@ export function useSocket(consultationId?: string, userId?: string | null, userN
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const socketRef = useRef<Socket | null>(null);
+  const currentConsultationRef = useRef<string | undefined>(consultationId);
 
   useEffect(() => {
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000';
@@ -47,7 +48,15 @@ export function useSocket(consultationId?: string, userId?: string | null, userN
     });
 
     newSocket.on('new-message', (message: Message) => {
-      setMessages(prev => [...prev, message]);
+      // Only add messages for the current consultation
+      if (message.consultationId === currentConsultationRef.current) {
+        setMessages(prev => {
+          // Check if message already exists to prevent duplicates
+          const exists = prev.some(m => m.id === message.id);
+          if (exists) return prev;
+          return [...prev, message];
+        });
+      }
     });
 
     newSocket.on('error', (error: string) => {
@@ -59,6 +68,14 @@ export function useSocket(consultationId?: string, userId?: string | null, userN
       socketRef.current = null;
     };
   }, []);
+
+  // Clear messages and update consultation reference when consultationId changes
+  useEffect(() => {
+    if (currentConsultationRef.current !== consultationId) {
+      setMessages([]);
+      currentConsultationRef.current = consultationId;
+    }
+  }, [consultationId]);
 
   const joinConsultation = (consultationId: string) => {
     if (socket && isConnected) {

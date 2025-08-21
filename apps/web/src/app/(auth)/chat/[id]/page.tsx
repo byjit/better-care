@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, User, Bot, Wifi, WifiOff } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
+import React from "react";
 import { useParams } from 'next/navigation';
 import { trpc } from "@/utils/trpc";
 import { toast } from "sonner";
@@ -48,11 +49,37 @@ export default function ChatPage() {
     }
   }, [isConnected, params.id, joinConsultation]);
 
-  // Combine existing messages with real-time messages
-  const allMessages = [
-    ...(existingMessages || []),
-    ...socketMessages
-  ];
+  // Combine and deduplicate messages, ensuring proper ordering
+  const allMessages = React.useMemo(() => {
+    const dbMessages = existingMessages || [];
+    const realtimeMessages = socketMessages || [];
+
+    // Create a map to track unique messages by ID
+    const messageMap = new Map();
+
+    // Add database messages first (they are the source of truth)
+    dbMessages.forEach(msg => {
+      messageMap.set(msg.id, {
+        ...msg,
+        createdAt: new Date(msg.createdAt) // Ensure consistent Date object
+      });
+    });
+
+    // Add socket messages, but only if they're not already in the database
+    realtimeMessages.forEach(msg => {
+      if (!messageMap.has(msg.id)) {
+        messageMap.set(msg.id, {
+          ...msg,
+          createdAt: new Date(msg.createdAt) // Ensure consistent Date object
+        });
+      }
+    });
+
+    // Convert back to array and sort by creation time
+    return Array.from(messageMap.values()).sort((a, b) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }, [existingMessages, socketMessages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -186,9 +213,7 @@ export default function ChatPage() {
                     )}
                     <div className={`max-w-[70%] ${isCurrentUser && !isAI ? 'order-first' : ''}`}>
                       <div
-                        className={`p-3 rounded-lg ${isAI
-                          ? "bg-blue-50 border border-blue-200"
-                          : isCurrentUser
+                        className={`p-3 rounded-lg ${isCurrentUser
                             ? "bg-primary text-primary-foreground"
                             : "bg-secondary"
                           }`}
