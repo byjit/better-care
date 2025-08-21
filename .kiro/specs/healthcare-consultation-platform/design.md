@@ -2,309 +2,315 @@
 
 ## Overview
 
-The healthcare consultation platform follows a ChatGPT-inspired interface design adapted for medical consultations. The system uses a clean, conversational UI with a left sidebar for channel navigation and a main chat area for real-time communication between patients and doctors, enhanced with AI assistance.
+The healthcare consultation platform design implements a secure, real-time communication system between doctors and patients with AI assistance. The architecture leverages the existing Next.js frontend, Express/tRPC backend, and SQLite database, extending it with consultation management, real-time messaging, and AI integration capabilities.
 
 ## Architecture
 
-### System Architecture
+### High-Level Architecture
 
 ```mermaid
 graph TB
-    subgraph "Frontend (Next.js 15)"
-        A[Web App] --> B[Auth Pages]
-        A --> C[Patient Dashboard]
-        A --> D[Doctor Dashboard]
-        A --> E[Chat Interface]
-        A --> F[AI Assistant]
+    subgraph "Frontend (Next.js)"
+        A[Dashboard Pages] --> B[Chat Interface]
+        A --> C[Doctor Selection]
+        A --> D[Medical Records]
+        B --> E[Real-time Messaging]
+        B --> F[AI Assistant UI]
     end
     
     subgraph "Backend (Express + tRPC)"
-        G[API Server] --> H[Auth Router]
-        G --> I[Channel Router]
-        G --> J[Message Router]
-        G --> K[AI Router]
-        G --> L[WebSocket Server]
+        G[Consultation Router] --> H[Message Router]
+        G --> I[AI Router]
+        H --> J[WebSocket Handler]
+        I --> K[Memory Management]
     end
     
     subgraph "Data Layer"
-        M[Turso Database] --> N[Users Table]
-        M --> O[Channels Table]
-        M --> P[Messages Table]
-        M --> Q[Sessions Table]
+        L[(SQLite Database)]
+        M[(Redis Cache)]
+        N[AI Service Integration]
     end
     
-    subgraph "External Services"
-        R[Google OAuth]
-        S[AI Service]
-    end
-    
-    A --> G
-    G --> M
-    H --> R
-    K --> S
+    E --> J
+    F --> I
+    G --> L
+    H --> L
+    K --> M
+    I --> N
 ```
 
-### Technology Stack
+### Technology Stack Integration
 
-- **Frontend**: Next.js 15 with React 19, shadcn/ui components
-- **Backend**: Express 5 with tRPC 11 for type-safe APIs
-- **Database**: Drizzle ORM with Turso (SQLite)
-- **Authentication**: Better-Auth with Google OAuth
-- **Real-time**: WebSocket integration
-- **AI**: AI SDK with Google Gemini
-- **Styling**: TailwindCSS 4 with shadcn/ui (no custom styling)
+- **Frontend**: Next.js 15 with App Router, React 19, TailwindCSS, shadcn/ui
+- **Backend**: Express 5, tRPC 11, WebSocket support for real-time messaging
+- **Database**: SQLite with Drizzle ORM for primary data, Redis for AI memory caching
+- **AI Integration**: Google Gemini via AI SDK for assistant functionality
+- **Authentication**: Better Auth with existing role-based access control
 
 ## Components and Interfaces
 
-### UI Component Structure
+### Database Schema Extensions
 
-#### ChatGPT-Inspired Layout
-```
-┌─────────────────────────────────────────────────────────┐
-│ Header (Logo, User Menu, Logout)                        │
-├─────────────┬───────────────────────────────────────────┤
-│             │                                           │
-│  Sidebar    │           Main Chat Area                  │
-│             │                                           │
-│ - New Chat  │  ┌─────────────────────────────────────┐  │
-│ - Channels  │  │                                     │  │
-│   • Active  │  │        Message History              │  │
-│   • Past    │  │                                     │  │
-│             │  │                                     │  │
-│             │  └─────────────────────────────────────┘  │
-│             │  ┌─────────────────────────────────────┐  │
-│             │  │ Message Input + AI Assistant        │  │
-│             │  └─────────────────────────────────────┘  │
-└─────────────┴───────────────────────────────────────────┘
-```
-
-#### Core Components
-
-**1. Layout Components**
-- `AppLayout`: Main application wrapper with sidebar and content area
-- `Sidebar`: Collapsible navigation with channel list
-- `Header`: Top navigation with user info and actions
-
-**2. Authentication Components**
-- `LoginPage`: Google OAuth integration
-- `RoleSelection`: Post-auth role picker (Patient/Doctor)
-- `AuthGuard`: Route protection wrapper
-
-**3. Dashboard Components**
-- `PatientDashboard`: Channel management for patients
-- `DoctorDashboard`: Available channels for doctors
-- `ChannelList`: Sidebar channel navigation
-- `NewChannelDialog`: Channel creation modal
-
-**4. Chat Components**
-- `ChatInterface`: Main conversation area
-- `MessageList`: Scrollable message history
-- `MessageInput`: Text input with send functionality
-- `MessageBubble`: Individual message display
-- `AIAssistant`: Integrated AI helper panel## D
-ata Models
-
-### Database Schema
-
-#### Users Table
+#### Consultations Table
 ```typescript
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'patient' | 'doctor' | null;
-  avatar?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-#### Channels Table
-```typescript
-interface Channel {
-  id: string;
-  title: string;
-  description?: string;
-  patientId: string;
-  status: 'waiting' | 'active' | 'ended';
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-#### Sessions Table
-```typescript
-interface Session {
-  id: string;
-  channelId: string;
-  doctorId: string;
-  startedAt: Date;
-  endedAt?: Date;
-  status: 'active' | 'ended';
-}
+export const consultation = sqliteTable("consultation", {
+  id: text("id").primaryKey(),
+  patientId: text("patient_id").notNull().references(() => user.id),
+  doctorId: text("doctor_id").references(() => user.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: text("status", { enum: ["pending", "active", "inactive"] }).default("pending"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
 ```
 
 #### Messages Table
 ```typescript
+export const message = sqliteTable("message", {
+  id: text("id").primaryKey(),
+  consultationId: text("consultation_id").notNull().references(() => consultation.id),
+  senderId: text("sender_id").notNull().references(() => user.id),
+  content: text("content").notNull(),
+  messageType: text("message_type", { enum: ["user", "ai"] }).default("user"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+```
+
+#### AI Memories (Redis)
+```typescript
+interface AIMemory {
+  consultationId: string;
+  key: string;
+  value: string;
+  createdBy: string; // doctor ID
+  createdAt: Date;
+}
+```
+
+### API Router Structure
+
+#### Consultation Router
+```typescript
+export const consultationRouter = router({
+  // Patient operations
+  create: protectedProcedure.input(createConsultationSchema).mutation(),
+  getMyConsultations: protectedProcedure.query(),
+  
+  // Doctor operations
+  getPendingConsultations: protectedProcedure.query(),
+  getActiveConsultations: protectedProcedure.query(),
+  acceptConsultation: protectedProcedure.input(z.object({ id: z.string() })).mutation(),
+  rejectConsultation: protectedProcedure.input(z.object({ id: z.string() })).mutation(),
+  endConsultation: protectedProcedure.input(z.object({ id: z.string() })).mutation(),
+  
+  // Shared operations
+  getConsultationById: protectedProcedure.input(z.object({ id: z.string() })).query(),
+});
+```
+
+#### Message Router
+```typescript
+export const messageRouter = router({
+  getMessages: protectedProcedure.input(z.object({ consultationId: z.string() })).query(),
+  sendMessage: protectedProcedure.input(sendMessageSchema).mutation(),
+  subscribeToMessages: protectedProcedure.input(z.object({ consultationId: z.string() })).subscription(),
+});
+```
+
+#### AI Router
+```typescript
+export const aiRouter = router({
+  processAIRequest: protectedProcedure.input(aiRequestSchema).mutation(),
+  getMemories: protectedProcedure.input(z.object({ consultationId: z.string() })).query(),
+  createMemory: protectedProcedure.input(createMemorySchema).mutation(),
+});
+```
+
+### Frontend Component Architecture
+
+#### Page Components
+- **Dashboard**: Role-specific dashboard with consultation lists
+- **Chat Interface**: Real-time messaging with AI integration
+- **Doctor Selection**: Doctor browsing and consultation creation
+- **Medical Records**: Patient consultation history
+
+#### Shared Components
+- **ConsultationCard**: Displays consultation information with status
+- **MessageBubble**: Individual message display with sender identification
+- **AIAssistant**: AI interaction interface with @b mention handling
+- **ConsultationSidebar**: Dynamic sidebar showing relevant consultations
+
+### Real-time Communication
+
+#### WebSocket Integration
+```typescript
+// WebSocket event types
+interface WebSocketEvents {
+  'message:new': { consultationId: string; message: Message };
+  'consultation:status': { consultationId: string; status: ConsultationStatus };
+  'user:online': { userId: string; consultationId: string };
+  'user:offline': { userId: string; consultationId: string };
+}
+```
+
+#### Message Flow
+1. User sends message via tRPC mutation
+2. Message stored in database
+3. WebSocket broadcasts message to consultation participants
+4. AI processing triggered if @b mention detected
+5. AI response stored and broadcasted
+
+## Data Models
+
+### Core Entities
+
+#### Consultation Entity
+```typescript
+interface Consultation {
+  id: string;
+  patientId: string;
+  doctorId?: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'active' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
+  
+  // Relations
+  patient: User;
+  doctor?: User;
+  messages: Message[];
+}
+```
+
+#### Message Entity
+```typescript
 interface Message {
   id: string;
-  channelId: string;
+  consultationId: string;
   senderId: string;
   content: string;
-  type: 'user' | 'ai';
-  timestamp: Date;
+  messageType: 'user' | 'ai';
+  createdAt: Date;
+  
+  // Relations
+  sender: User;
+  consultation: Consultation;
 }
 ```
 
-### API Interfaces
-
-#### tRPC Router Structure
+#### AI Memory Entity
 ```typescript
-// Auth Router
-interface AuthRouter {
-  getSession(): Promise<User | null>;
-  updateRole(role: 'patient' | 'doctor'): Promise<User>;
-}
-
-// Channel Router
-interface ChannelRouter {
-  create(data: { title: string; description?: string }): Promise<Channel>;
-  getMyChannels(): Promise<Channel[]>;
-  getAvailableChannels(): Promise<Channel[]>; // For doctors
-  joinChannel(channelId: string): Promise<Session>;
-  endSession(sessionId: string): Promise<void>;
-}
-
-// Message Router
-interface MessageRouter {
-  getMessages(channelId: string): Promise<Message[]>;
-  sendMessage(data: { channelId: string; content: string }): Promise<Message>;
-}
-
-// AI Router
-interface AIRouter {
-  summarizeConversation(channelId: string): Promise<string>;
-  askQuestion(channelId: string, question: string): Promise<string>;
+interface AIMemory {
+  consultationId: string;
+  key: string;
+  value: string;
+  createdBy: string;
+  createdAt: Date;
 }
 ```
+
+### Data Access Patterns
+
+#### Role-based Access Control
+- **Patients**: Full access to their own consultations (all statuses)
+- **Doctors**: Access to assigned consultations (pending/active only)
+- **AI Memories**: Doctors can create, both roles can read within consultation scope
+
+#### Query Optimization
+- Index on consultation status and user relationships
+- Pagination for message history
+- Caching for frequently accessed consultation data
 
 ## Error Handling
 
-### Frontend Error Boundaries
-- Global error boundary for unhandled React errors
-- Form validation with shadcn/ui form components
-- Loading states for all async operations
-- Toast notifications for user feedback
-
-### Backend Error Handling
-- tRPC error handling with proper HTTP status codes
-- Database connection error recovery
-- WebSocket connection management
-- Rate limiting for API endpoints
-
-### Error Types
+### API Error Responses
 ```typescript
-enum ErrorCode {
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  CHANNEL_NOT_FOUND = 'CHANNEL_NOT_FOUND',
-  SESSION_ALREADY_ACTIVE = 'SESSION_ALREADY_ACTIVE',
-  INVALID_ROLE = 'INVALID_ROLE',
-  AI_SERVICE_ERROR = 'AI_SERVICE_ERROR'
+enum ConsultationErrors {
+  CONSULTATION_NOT_FOUND = 'CONSULTATION_NOT_FOUND',
+  UNAUTHORIZED_ACCESS = 'UNAUTHORIZED_ACCESS',
+  INVALID_STATUS_TRANSITION = 'INVALID_STATUS_TRANSITION',
+  DOCTOR_ALREADY_ASSIGNED = 'DOCTOR_ALREADY_ASSIGNED',
+  CONSULTATION_ENDED = 'CONSULTATION_ENDED',
 }
 ```
+
+### Frontend Error Handling
+- Toast notifications for user-facing errors
+- Retry mechanisms for network failures
+- Graceful degradation for real-time features
+- Error boundaries for component-level failures
+
+### WebSocket Error Handling
+- Automatic reconnection with exponential backoff
+- Message queuing during disconnection
+- Fallback to polling for critical updates
 
 ## Testing Strategy
 
 ### Unit Testing
-- Component testing with React Testing Library
-- API route testing with Jest
-- Database model testing with test database
-- Utility function testing
+- **Database Operations**: Test all CRUD operations with mock data
+- **Business Logic**: Test consultation state transitions and access control
+- **AI Integration**: Mock AI responses and test memory management
+- **Validation**: Test input schemas and data validation
 
 ### Integration Testing
-- End-to-end user flows with Playwright
-- WebSocket connection testing
-- Authentication flow testing
-- Real-time message delivery testing
+- **API Endpoints**: Test complete request/response cycles
+- **WebSocket Communication**: Test real-time message delivery
+- **Authentication Flow**: Test role-based access control
+- **Database Transactions**: Test data consistency across operations
 
-### Test Coverage Areas
-- User registration and role selection
-- Channel creation and management
-- Doctor-patient matching
-- Real-time messaging
-- AI assistant functionality
-- Session management and transitions## UI/UX
- Design Specifications
+### End-to-End Testing
+- **Patient Journey**: Create consultation → select doctor → chat → view records
+- **Doctor Journey**: Accept consultation → chat → end consultation
+- **AI Interaction**: Test @b mentions and memory creation/retrieval
+- **Real-time Features**: Test concurrent user interactions
 
-### ChatGPT-Inspired Interface Adaptations
+### Performance Testing
+- **Database Queries**: Test query performance with large datasets
+- **WebSocket Scalability**: Test concurrent connection limits
+- **AI Response Times**: Test AI processing latency
+- **Memory Usage**: Test Redis memory consumption patterns
 
-#### Sidebar Design (shadcn/ui components)
-- **New Channel Button**: Prominent "+" button at top of sidebar
-- **Channel List**: Scrollable list with channel titles and status indicators
-- **Channel Categories**: 
-  - "Active Consultations" (green indicator)
-  - "Waiting for Doctor" (yellow indicator) 
-  - "Past Consultations" (gray indicator)
-- **Search/Filter**: Quick search for channel titles
-- **Collapsible**: Mobile-responsive sidebar that can collapse
+## Security Considerations
 
-#### Main Chat Area
-- **Message Display**: 
-  - Patient messages: Right-aligned, blue background
-  - Doctor messages: Left-aligned, white background with border
-  - AI messages: Left-aligned, purple accent with AI icon
-  - Timestamps on hover
-- **Message Input**: 
-  - Multi-line text area with auto-resize
-  - Send button (Enter key support)
-  - AI assistant toggle button
-- **Status Indicators**:
-  - "Doctor is typing..." indicators
-  - Connection status (online/offline)
-  - Session status (active/waiting/ended)
+### Data Protection
+- Encrypt sensitive medical data at rest
+- Use HTTPS for all communications
+- Implement proper session management
+- Sanitize user inputs to prevent XSS
 
-#### Role-Specific Adaptations
+### Access Control
+- Validate user permissions on every request
+- Implement consultation-scoped access control
+- Audit log for sensitive operations
+- Rate limiting for AI requests
 
-**Patient Interface**:
-- Sidebar shows "My Health Issues" as header
-- "Start New Consultation" button prominently displayed
-- Channel status clearly indicated (waiting, active, completed)
-- Option to "Request New Doctor" for ended sessions
+### Privacy Compliance
+- Implement data retention policies
+- Provide data export capabilities
+- Support consultation data deletion (where legally permitted)
+- Maintain audit trails for compliance
 
-**Doctor Interface**:
-- Sidebar shows "Available Patients" and "My Active Consultations"
-- Patient information preview on channel hover
-- "Join Consultation" on click
-- "End Session" button (only for doctors)
+## AI Integration Architecture
 
-### Component Styling Guidelines
+### Memory Management
+- Redis-based key-value storage scoped to consultations
+- Doctor-only write access for creating memories
+- Both roles read access within consultation scope
+- Automatic cleanup of inactive consultation memories
 
-#### Color Scheme (TailwindCSS classes)
-use the shadcn default
+### AI Processing Pipeline
+1. Detect @b mentions in chat messages
+2. Determine request type (statement vs. question)
+3. For statements: Create memory + generate response
+4. For questions: Query memories + generate contextual response
+5. Store AI response as system message
+6. Broadcast response to all participants
 
-### Responsive Design
-
-#### Desktop (1024px+)
-- Full sidebar visible (280px width)
-- Three-column layout possible for doctor dashboard
-- Larger message bubbles with more padding
-
-#### Tablet (768px - 1023px)
-- Collapsible sidebar (overlay mode)
-- Two-column layout
-- Touch-friendly button sizes
-
-#### Mobile (< 768px)
-- Hidden sidebar (hamburger menu)
-- Single column layout
-- Bottom-fixed message input
-- Swipe gestures for navigation
-
-### Accessibility Features
-
-- **Screen Reader**: Proper ARIA labels and semantic HTML
-
-### Animation and Transitions
-
-- **Loading States**: Skeleton loaders for message history
-- **Status Changes**: Subtle color transitions for status updates
+### Integration Points
+- Google Gemini API for natural language processing
+- Context injection with consultation-specific memories
+- Response formatting for medical consultation context
+- Error handling for AI service unavailability

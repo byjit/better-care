@@ -2,101 +2,114 @@
 
 ## Introduction
 
-The healthcare consultation platform is a comprehensive system that enables remote medical consultations through issue-specific communication channels. The platform connects patients with doctors while maintaining complete conversation history and providing AI assistance to both parties. The system emphasizes continuity of care by allowing patients to switch doctors within the same health issue channel while preserving all previous interactions and context.
+This document outlines the requirements for implementing the core consultation functionality of the better-care healthcare platform. The platform enables secure communication between doctors and patients through issue-specific chat channels with AI assistance. The system supports role-based access control where patients can create consultations and select doctors, while doctors can accept/reject consultations and have exclusive rights to end sessions.
 
 ## Requirements
 
-### Requirement 1: User Authentication and Role Management
+### Requirement 1: Consultation Management System
 
-**User Story:** As a new user, I want to register using google and select my role (patient or doctor), so that I can access the appropriate features and interface for my user type.
-
-#### Acceptance Criteria
-
-1. WHEN a user visits the registration page THEN the system SHALL provide google oauth button
-2. WHEN a user successfully registers THEN the system SHALL redirect them to a role selection page
-3. WHEN a user selects their role (patient or doctor) THEN the system SHALL save this role to their profile, updates the `onboard` field in the user relation to 0 and redirect them to the appropriate dashboard
-4. WHEN a user attempts to login and the onboard field is true THEN the system SHALL authenticate their credentials and redirect them to their role-specific dashboard
-5. IF a user has not selected a role THEN the system SHALL redirect them to the role selection page upon login
-
-### Requirement 2: Patient Channel Management
-
-**User Story:** As a patient, I want to create health issue channels and manage my consultations, so that I can organize my medical concerns and track my consultation history.
+**User Story:** As a patient, I want to create new consultations for specific health issues, so that I can get targeted medical advice from qualified doctors.
 
 #### Acceptance Criteria
 
-NOTE: The UI UX must be like that of Chat GPT's
-1. WHEN a patient accesses their dashboard THEN the system SHALL display options to create new channels with a left sidebar provided by shadcn and view existing channels as a list in the left sidebar only.
-2. WHEN a patient creates a new channel THEN the system SHALL require a descriptive name for the health issue (e.g., "Knee Pain")
-3. WHEN a patient creates a channel THEN the system SHALL initialize the channel with the patient as the owner and set status to "waiting for doctor"
-4. WHEN a patient views their channels THEN the system SHALL display active channels and past channels separately
-5. WHEN a patient selects a channel THEN the system SHALL display the full conversation history and current status
+1. WHEN a patient accesses the consultation creation interface THEN the system SHALL display a form to describe their health issue
+2. WHEN a patient submits a consultation request THEN the system SHALL create a new consultation record with status "pending"
+3. WHEN a consultation is created THEN the system SHALL generate a unique chat channel identifier
+4. IF a patient has existing consultations THEN the system SHALL allow them to select from existing consultations or create new ones
+5. WHEN a consultation is created THEN the system SHALL store the patient's problem description and relevant metadata
 
-### Requirement 3: Doctor Channel Discovery and Joining
+### Requirement 2: Doctor Selection and Assignment
 
-**User Story:** As a doctor, I want to browse available patient channels and join consultations, so that I can provide medical assistance to patients who need help.
-
-#### Acceptance Criteria
-NOTE: The UI UX must be like that of Chat GPT's
-1. WHEN a doctor accesses their dashboard THEN the system SHALL display a list of available patient channels awaiting consultation
-2. WHEN a doctor views available channels THEN the system SHALL show the channel name, patient information, and creation time
-3. WHEN a doctor joins a channel THEN the system SHALL update the channel status to "active consultation" and notify the patient
-4. WHEN a doctor joins a channel THEN the system SHALL provide access to the complete conversation history
-5. IF a channel already has an active doctor THEN the system SHALL not display it in the available channels list
-
-### Requirement 4: Real-time Chat Communication
-
-**User Story:** As a patient or doctor in an active consultation, I want to communicate in real-time through chat messages, so that we can have an effective consultation session.
+**User Story:** As a patient, I want to select a specific doctor for my consultation, so that I can receive care from a specialist relevant to my condition.
 
 #### Acceptance Criteria
 
-1. WHEN a patient and doctor are in an active channel THEN the system SHALL enable real-time messaging between them
-2. WHEN a user sends a message THEN the system SHALL immediately display it to both participants using WebSocket communication
-3. WHEN a message is sent THEN the system SHALL store it permanently in the channel history with timestamp and sender information
-5. WHEN a user joins an active channel THEN the system SHALL load and display the complete message history
+1. WHEN a patient creates a consultation THEN the system SHALL allow them to select from available doctors
+2. WHEN a doctor is selected THEN the system SHALL create a consultation-doctor relationship with status "pending"
+3. WHEN a doctor receives a consultation request THEN the system SHALL notify them through their dashboard
+4. WHEN a doctor accepts a consultation THEN the system SHALL update the consultation status to "active"
+5. WHEN a doctor rejects a consultation THEN the system SHALL update the status and allow patient to select another doctor
 
-### Requirement 5: Session Management and Doctor Transitions
+### Requirement 3: Real-time Chat Interface
 
-**User Story:** As a patient, I want to be able to change doctors within the same health issue channel while maintaining all conversation history, so that I can get different medical opinions without losing context.
-
-#### Acceptance Criteria
-
-1. WHEN a doctor ends a consultation session THEN the system SHALL update the channel status to "session ended" and make the channel available for other doctors
-2. WHEN a patient wants to connect with a new doctor THEN the system SHALL allow them to make the channel available for new doctor connections
-3. WHEN a new doctor joins a previously consulted channel THEN the system SHALL provide access to the complete conversation history from all previous sessions
-4. IF a patient tries to end a session THEN the system SHALL not allow this action (only doctors can end sessions)
-5. WHEN a session ends THEN the system SHALL notify both the patient and doctor of the session termination
-
-### Requirement 6: AI Assistant Integration
-
-**User Story:** As a patient or doctor using the platform, I want an AI assistant to help with conversation summarization, note-taking, and health-related queries, so that I can have more effective and organized consultations.
+**User Story:** As a patient or doctor, I want to communicate through a real-time chat interface, so that I can have immediate conversations about health concerns.
 
 #### Acceptance Criteria
 
-1. WHEN a new doctor joins a channel with existing conversation history THEN the AI SHALL provide a summary of previous interactions
-2. WHEN a user asks the AI a question within a channel THEN the system SHALL provide contextually relevant responses based on the conversation history
-3. WHEN a consultation session is active THEN the AI SHALL be available to both patient and doctor for assistance
-4. WHEN the AI provides information THEN the system SHALL clearly identify AI responses as distinct from human messages
-5. WHEN a user requests conversation notes THEN the AI SHALL generate structured summaries of key discussion points
+1. WHEN users access an active consultation THEN the system SHALL display a real-time chat interface
+2. WHEN a user sends a message THEN the system SHALL immediately display it to all participants
+3. WHEN messages are sent THEN the system SHALL store them with sender identification and timestamps
+4. WHEN users join a chat THEN the system SHALL display the complete conversation history
+5. WHEN the chat is active THEN the system SHALL show online status of participants
 
-### Requirement 7: Dashboard and Navigation
+### Requirement 4: AI Assistant Integration
 
-**User Story:** As a user (patient or doctor), I want an intuitive dashboard that shows relevant information and easy navigation, so that I can efficiently manage my consultations and access platform features.
-
-#### Acceptance Criteria
-
-1. WHEN a patient logs in THEN the system SHALL display their active channels, past channels, and option to create new channels
-2. WHEN a doctor logs in THEN the system SHALL display available patient channels and their active consultations
-3. WHEN a user navigates between sections THEN the system SHALL provide clear visual indicators of their current location
-4. WHEN a user has notifications THEN the system SHALL display them prominently on the dashboard
-5. WHEN a user accesses their profile THEN the system SHALL allow them to view and update their account information
-
-### Requirement 8: Data Persistence and Security
-
-**User Story:** As a platform user, I want my data to be securely stored and always available, so that I can trust the platform with sensitive health information.
+**User Story:** As a patient or doctor, I want to interact with an AI assistant using @b mentions, so that I can get additional medical information and create consultation memories.
 
 #### Acceptance Criteria
 
-1. WHEN a user accesses their data THEN the system SHALL ensure they can only view information they are authorized to see
-2. WHEN system errors occur THEN the system SHALL handle them gracefully without exposing sensitive information
-3. WHEN users are inactive THEN the system SHALL automatically log them out after a secure timeout period
-4. WHEN data is transmitted THEN the system SHALL use secure HTTPS connections for all communications
+1. WHEN a user types "@b" in the chat THEN the system SHALL trigger the AI assistant
+2. WHEN a doctor makes a statement with "@b" THEN the system SHALL create a memory entry and provide AI response
+3. WHEN any user asks a question with "@b" THEN the system SHALL query existing memories and provide contextual responses
+4. WHEN AI memories are created THEN the system SHALL scope them to the specific consultation
+5. WHEN AI responds THEN the system SHALL make responses visible to both doctor and patient
+
+### Requirement 5: Session Management and Control
+
+**User Story:** As a doctor, I want exclusive control over ending consultation sessions, so that I can properly conclude medical consultations when appropriate.
+
+#### Acceptance Criteria
+
+1. WHEN a consultation is active THEN only the assigned doctor SHALL have the ability to end the session
+2. WHEN a doctor ends a consultation THEN the system SHALL update the status to "inactive"
+3. WHEN a consultation is ended THEN the system SHALL preserve all conversation history
+4. WHEN a consultation becomes inactive THEN the system SHALL remove it from doctor's active consultation list
+5. WHEN a consultation is inactive THEN the system SHALL restrict doctor access to the conversation
+
+### Requirement 6: Role-based Dashboard and Navigation
+
+**User Story:** As a doctor, I want to see pending and active consultations in my dashboard sidebar, so that I can efficiently manage my patient consultations.
+
+#### Acceptance Criteria
+
+1. WHEN a doctor accesses their dashboard THEN the system SHALL display pending consultations highlighted in blue
+2. WHEN a doctor views their sidebar THEN the system SHALL show active consultations in normal styling
+3. WHEN consultations become inactive THEN the system SHALL hide them from the doctor's sidebar
+4. WHEN a doctor clicks on a consultation THEN the system SHALL navigate to the chat interface
+5. WHEN consultations are displayed THEN the system SHALL show consultation titles and status indicators
+
+### Requirement 7: Patient Consultation Access
+
+**User Story:** As a patient, I want to access all my consultations regardless of status, so that I can review my medical history and continue conversations.
+
+#### Acceptance Criteria
+
+1. WHEN a patient accesses their dashboard THEN the system SHALL display all their consultations
+2. WHEN a patient views consultations THEN the system SHALL show pending, active, and completed consultations
+3. WHEN a patient clicks on any consultation THEN the system SHALL allow access to the chat interface
+4. WHEN a consultation is inactive THEN the system SHALL still allow patient read access to conversation history
+5. WHEN displaying consultations THEN the system SHALL indicate the current status and assigned doctor
+
+### Requirement 8: Data Privacy and Security
+
+**User Story:** As a healthcare platform user, I want my medical conversations to be secure and private, so that my health information is protected according to healthcare standards.
+
+#### Acceptance Criteria
+
+1. WHEN doctors access consultations THEN the system SHALL only show consultations they are assigned to
+2. WHEN a consultation becomes inactive THEN the system SHALL restrict doctor access while preserving patient access
+3. WHEN storing conversation data THEN the system SHALL encrypt sensitive medical information
+4. WHEN users authenticate THEN the system SHALL verify their role and permissions
+5. WHEN accessing chat data THEN the system SHALL log access for audit purposes
+
+### Requirement 9: Medical Records Integration
+
+**User Story:** As a patient, I want to access my medical records and consultation history, so that I can track my health journey and share information with healthcare providers.
+
+#### Acceptance Criteria
+
+1. WHEN a patient accesses the records section THEN the system SHALL display their consultation history
+2. WHEN viewing records THEN the system SHALL show consultation summaries, dates, and involved doctors
+3. WHEN records are displayed THEN the system SHALL organize them chronologically
+4. WHEN a patient selects a record THEN the system SHALL show detailed consultation information
+5. WHEN records are accessed THEN the system SHALL maintain patient privacy and data security

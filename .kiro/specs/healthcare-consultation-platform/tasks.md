@@ -1,109 +1,140 @@
 # Implementation Plan
 
-- [x] 1. Set up project foundation and database schema
-  - Initialize monorepo structure with apps/web and apps/server directories
-  - Configure Drizzle ORM with Turso database connection
-  - Create database schema files for users, channels, sessions, and messages tables
-  - Set up database migrations and connection utilities
-  - _Requirements: 8.1, 8.4_
+- [x] 1. Set up database schema for consultations and messages
+  - Create consultation table schema with patient/doctor relationships and status tracking
+  - Create message table schema with consultation relationships and message types
+  - Generate and run database migrations for new tables
+  - _Requirements: 1.2, 1.3, 3.4, 5.4_
 
-- [x] 2. Implement role selection page
-  - Implement role selection page for post-authentication user setup
-  - Create AuthGuard component for route protection
-  - Set up tRPC auth router with session management and role update endpoints
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+- [x] 2. Implement consultation data models and validation
+  - Create TypeScript interfaces and Zod schemas for consultation entities
+  - Implement validation functions for consultation creation and status transitions
+  - Create select/insert/update schemas using drizzle-zod
+  - Write unit tests for data model validation
+  - _Requirements: 1.1, 1.2, 2.2, 5.1_
 
-- [x] 3. Build core UI layout and navigation structure
-  - Create AppLayout component with ChatGPT-inspired sidebar and main content area
-  - Implement responsive Sidebar component using shadcn sidebar with collapsible functionality
-  - Build Header component with user menu and logout functionality
-  - Set up routing structure for patient and doctor dashboards
-  - Configure shadcn/ui components and TailwindCSS styling
-  - _Requirements: 7.3, 2.1, 3.1_
+- [x] 3. Build consultation management API endpoints
+  - Implement consultation router with CRUD operations
+  - Create protected procedures for consultation creation, acceptance, rejection, and ending
+  - Add role-based access control for consultation operations
+  - _Requirements: 1.1, 1.2, 2.3, 2.4, 5.1, 5.2_
 
-- [ ] 4. Develop patient channel management system
-  - Implement NewChannel Dialog component for health issue channel creation
-  - Build ChannelList component with active/past channel categorization
-  - Create tRPC channel router with create, getMyChannels, and status management endpoints
-  - Add channel status indicators (waiting, active, ended) with proper styling
-  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+- [ ] 4. Implement doctor consultation assignment system
+  - Create consultation-doctor relationship management functions
+  - Implement consultation status transition logic (pending → active → inactive)
+  - Add validation for doctor assignment and status changes
+  - Dont write tests
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 5.1, 5.2_
 
-- [ ] 5. Build doctor dashboard and channel discovery
-  - Create DoctorDashboard component showing available patient channels
-  - Implement channel browsing with patient information and creation time display
-  - Add joinChannel functionality with session creation
-  - Create tRPC endpoints for getAvailableChannels and joinChannel operations
-  - Implement channel filtering to hide channels with active doctors
-  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+- [ ] 5. Create consultation creation and doctor selection UI
+  - Build consultation creation form component with problem description
+  - Implement doctor selection interface with existing doctor list integration
+  - Create consultation submission workflow that creates consultation and navigates to chat
+  - Add form validation and error handling
+  - _Requirements: 1.1, 1.4, 2.1_
 
-- [ ] 6. Implement real-time chat interface
-  - Create ChatInterface component with message history and input areas
-  - Build MessageList component with scrollable message display
-  - Implement MessageBubble component with role-based styling (patient/doctor/AI)
-  - Create MessageInput component with multi-line text area and send functionality
-  - Add message persistence with tRPC message router (getMessages, sendMessage)
-  - _Requirements: 4.1, 4.3, 4.5_- [ ] 7
-. Add WebSocket integration for real-time messaging
-  - Set up WebSocket server in Express backend for real-time communication
-  - Implement WebSocket client connection in frontend chat interface
-  - Add real-time message broadcasting between connected users in same channel
-  - Create typing indicators and connection status displays
-  - Handle WebSocket reconnection and error scenarios
-  - _Requirements: 4.2, 4.4_
+- [ ] 6. Build role-based dashboard with consultation lists
+  - Implement patient dashboard showing all consultations with status indicators
+  - Create doctor dashboard with pending (highlighted) and active consultations
+  - Add consultation filtering and status-based styling
+  - Implement navigation from consultation list to chat interface
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2_
 
-- [ ] 8. Develop session management and doctor transitions
-  - Implement session ending functionality (doctor-only capability)
-  - Create session status tracking and updates in database
-  - Add "Request New Doctor" functionality for patients after session ends
-  - Build session transition logic to maintain conversation history
-  - Create notifications for session status changes
-  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+- [ ] 7. Implement message data layer and API
+  - Create message table operations with consultation relationships
+  - Build message router with send/retrieve operations
+  - Add message validation and sanitization
+  - Implement pagination for message history
+  - Write tests for message CRUD operations
+  - _Requirements: 3.3, 3.4_
 
-- [ ] 9. Integrate AI assistant functionality
-  - Set up AI SDK with Google Gemini integration
-  - Create AIAssistant component with conversation summarization
-  - Implement AI question answering based on channel conversation context
-  - Add AI message display with distinct styling (purple accent, AI icon)
-  - Create tRPC AI router with summarizeConversation and askQuestion endpoints
-  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+- [ ] 8. Create real-time chat interface components
+  - Build chat UI components (message bubbles, input field, message list)
+  - Implement message sending and receiving functionality
+  - Add sender identification and timestamp display
+  - Create message history loading and pagination
+  - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 10. Implement comprehensive error handling and loading states
-  - Add global error boundary for unhandled React errors
-  - Create loading states with skeleton loaders for message history and channel lists
-  - Implement form validation for channel creation and message input
-  - Add toast notifications for user feedback using shadcn/ui components
-  - Create proper error handling in tRPC routers with appropriate error codes
-  - _Requirements: 8.2, 8.3_
+- [ ] 9. Set up WebSocket infrastructure for real-time messaging
+  - Configure WebSocket server integration with Express
+  - Implement WebSocket event handlers for message broadcasting
+  - Add connection management and room-based messaging
+  - Create client-side WebSocket connection and event handling
+  - _Requirements: 3.1, 3.2_
 
-- [ ] 11. Add responsive design and mobile optimization
-  - Implement mobile-responsive sidebar with hamburger menu
-  - Create touch-friendly button sizes and interactions for tablet/mobile
-  - Add swipe gestures for navigation on mobile devices
-  - Optimize chat interface for mobile with bottom-fixed message input
-  - Test and adjust layout for desktop, tablet, and mobile breakpoints
-  - _Requirements: 7.3_
+- [ ] 10. Integrate real-time messaging with chat interface
+  - Connect chat UI to WebSocket for live message updates
+  - Implement message synchronization between database and real-time updates
+  - Add online/offline status indicators for chat participants
+  - Handle connection errors and reconnection logic
+  - _Requirements: 3.1, 3.2, 3.5_
 
-- [ ] 12. Implement user profile and notification system
-  - Create user profile page with account information display and editing
-  - Add notification system for session status changes and new messages
-  - Implement dashboard notification display with proper visual indicators
-  - Create user avatar display and management functionality
-  - Add automatic logout functionality for inactive users
-  - _Requirements: 7.4, 7.5, 8.3_
+- [ ] 11. Set up Redis for AI memory storage
+  - Configure Redis connection and client setup
+  - Implement AI memory data access layer with consultation scoping
+  - Create memory CRUD operations with proper key management
+  - Add memory cleanup for inactive consultations
+  - _Requirements: 4.4_
 
-- [ ] 13. Add comprehensive testing suite
-  - Write unit tests for React components using React Testing Library
-  - Create API endpoint tests for all tRPC routers
-  - Implement database model tests with test database setup
-  - Add integration tests for authentication flow and role selection
-  - Create end-to-end tests for complete user workflows (patient and doctor)
-  - Test WebSocket functionality and real-time message delivery
+- [ ] 12. Implement AI assistant integration
+  - Set up Google Gemini AI SDK integration
+  - Create AI request processing pipeline for @b mentions
+  - Implement memory creation for doctor statements
+  - Build memory querying system for contextual responses
+  - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
+- [ ] 13. Build AI assistant UI components
+  - Create @b mention detection in chat input
+  - Implement AI response display with system message styling
+  - Add AI processing indicators and loading states
+  - Create memory management interface for doctors
+  - _Requirements: 4.1, 4.5_
+
+- [ ] 14. Implement consultation access control and permissions
+  - Add role-based access validation for consultation endpoints
+  - Implement doctor access restrictions for inactive consultations
+  - Create patient access preservation for all consultation statuses
+  - Add audit logging for sensitive consultation operations
+  - _Requirements: 5.3, 5.5, 8.1, 8.2, 8.5_
+
+- [ ] 15. Create consultation session management
+  - Implement consultation ending functionality for doctors only
+  - Add session status updates and notifications
+  - Create consultation history preservation after ending
+  - Update sidebar and dashboard to reflect consultation status changes
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 6.3_
+
+- [ ] 16. Build medical records and consultation history interface
+  - Create medical records page showing patient consultation history
+  - Implement consultation summary display with dates and doctors
+  - Add chronological organization and filtering options
+  - Create detailed consultation view with full conversation access
+  - _Requirements: 7.3, 7.4, 9.1, 9.2, 9.3, 9.4_
+
+- [ ] 17. Implement comprehensive error handling and validation
+  - Add API error handling with specific error codes for consultation operations
+  - Implement frontend error boundaries and toast notifications
+  - Create input validation and sanitization for all forms
+  - Add graceful degradation for real-time features
+  - _Requirements: 8.4_
+
+- [ ] 18. Add security measures and data protection
+  - Implement data encryption for sensitive medical information
+  - Add rate limiting for AI requests and API endpoints
+  - Create input sanitization to prevent XSS attacks
+  - Implement proper session validation and CSRF protection
+  - _Requirements: 8.3, 8.4_
+
+- [ ] 19. Create comprehensive test suite
+  - Write unit tests for all consultation and message operations
+  - Implement integration tests for API endpoints and WebSocket communication
+  - Create end-to-end tests for complete user workflows
+  - Add performance tests for database queries and real-time features
   - _Requirements: All requirements validation_
 
-- [ ] 14. Finalize deployment configuration and optimization
-  - Configure production environment variables for Turso database and Google OAuth
-  - Set up proper HTTPS configuration for secure data transmission
-  - Implement rate limiting for API endpoints to prevent abuse
-  - Add database connection pooling and error recovery mechanisms
-  - Create production build optimization and deployment scripts
-  - _Requirements: 8.1, 8.4_
+- [ ] 20. Integrate and wire all components together
+  - Connect all frontend components with backend APIs
+  - Ensure proper data flow between consultation creation, chat, and records
+  - Verify role-based access control across all features
+  - Test complete user journeys for both patient and doctor roles
+  - _Requirements: All requirements integration_
