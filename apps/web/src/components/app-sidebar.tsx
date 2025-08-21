@@ -64,23 +64,25 @@ const patientNavItems = [
   },
 ]
 
-// This is sample data.
-const sampleChats = [
-  {
-    name: "Knee pain consultation",
-    url: "#",
-  },
-  {
-    name: "Tfcc injury",
-    url: "#",
-  },
-]
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = trpc.auth.getSession.useQuery()
 
+  // Get user's consultations
+  const { data: consultations } = trpc.consultation.getMyConsultations.useQuery(
+    undefined,
+    { enabled: !!session?.user }
+  );
+
   // Determine navigation items based on user role
   const navItems = session?.user.role === 'patient' ? patientNavItems : baseNavItems
+
+  // Transform consultations to chat format
+  const chats = consultations?.map(consultation => ({
+    name: consultation.title,
+    url: `/chat/${consultation.id}`,
+    status: consultation.status,
+    id: consultation.id
+  })) || [];
 
   return (
     <Sidebar className="border-r-0" {...props}>
@@ -91,7 +93,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarHeader>
       <SidebarContent>
-        <NavChat chats={sampleChats} />
+        <NavChat chats={chats as any} />
       </SidebarContent>
       <SidebarRail />
       <SidebarFooter>

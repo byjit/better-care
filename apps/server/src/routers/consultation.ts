@@ -251,6 +251,61 @@ export const consultationRouter = router({
       return updatedConsultation[0];
     }),
 
+  // Connect doctor to consultation (for patients to assign doctors)
+  connectDoctorToConsultation: protectedProcedure
+    .input(z.object({
+      consultationId: z.string(),
+      doctorId: z.string()
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Verify user is a patient and owns the consultation
+      const consultationData = await db
+        .select()
+        .from(consultation)
+        .where(eq(consultation.id, input.consultationId))
+        .limit(1);
+
+      if (consultationData.length === 0) {
+        throw new Error("Consultation not found");
+      }
+
+      const consultationItem = consultationData[0];
+
+      if (consultationItem.patientId !== userId) {
+        throw new Error("You can only connect doctors to your own consultations");
+      }
+
+      if (consultationItem.status !== "pending") {
+        throw new Error("Can only connect doctors to pending consultations");
+      }
+
+      // Verify the doctor exists and is a doctor
+      const doctorData = await db
+        .select()
+        .from(user)
+        .where(eq(user.id, input.doctorId))
+        .limit(1);
+
+      if (doctorData.length === 0 || doctorData[0].role !== 'doctor') {
+        throw new Error("Invalid doctor selected");
+      }
+
+      // Update consultation to connect the doctor and set status to active
+      const updatedConsultation = await db
+        .update(consultation)
+        .set({
+          doctorId: input.doctorId,
+          status: "active",
+          updatedAt: new Date(),
+        })
+        .where(eq(consultation.id, input.consultationId))
+        .returning();
+
+      return updatedConsultation[0];
+    }),
+
   // Shared operations
   getConsultationById: protectedProcedure
     .input(z.object({ id: z.string() }))

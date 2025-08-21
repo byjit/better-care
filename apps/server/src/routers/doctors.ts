@@ -29,14 +29,13 @@ export const doctorsRouter = router({
 
     // Filter and transform the data to only include patient-relevant information
     return doctors
-      .filter(doctor => doctor.metadata && 'specialization' in doctor.metadata)
       .map(doctor => ({
         id: doctor.id,
         name: doctor.name,
         image: doctor.image,
         metadata: {
-          specialization: (doctor.metadata as any).specialization,
-          experience: (doctor.metadata as any).experience,
+          specialization: (doctor.metadata as any)?.specialization,
+          experience: (doctor.metadata as any)?.experience,
         },
       }));
   }),
