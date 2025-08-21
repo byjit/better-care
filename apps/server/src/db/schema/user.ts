@@ -30,7 +30,7 @@ export const user = sqliteTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
   image: text("image"),
-  role: text("role", { enum: userRoleEnum }).default("patient"),
+  role: text("role", { enum: userRoleEnum }).notNull().default("patient"),
   onboard: integer("onboard", { mode: "boolean" }).notNull().default(true),
   metadata: text('metadata', { mode: "json" }).$type<Metadata>(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
