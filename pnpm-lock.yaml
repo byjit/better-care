@@ -20,6 +20,9 @@ importers:
       '@libsql/client':
         specifier: ^0.15.9
         version: 0.15.12
+      '@paralleldrive/cuid2':
+        specifier: 1.0.0
+        version: 1.0.0
       '@trpc/client':
         specifier: ^11.4.2
         version: 11.4.4(@trpc/server@11.4.4(typescript@5.9.2))(typescript@5.9.2)
@@ -906,6 +909,9 @@ packages:
 
   '@oxc-project/types@0.82.2':
     resolution: {integrity: sha512-WMGSwd9FsNBs/WfqIOH0h3k1LBdjZJQGYjGnC+vla/fh6HUsu5HzGPerRljiq1hgMQ6gs031YJR12VyP57b/hQ==}
+
+  '@paralleldrive/cuid2@1.0.0':
+    resolution: {integrity: sha512-f73Mac/3I/PVkKTOn8cfCGXpkDZ2TLm9B5U94K5Y8bbXgMTPGMwN6RJui8Ph+Iw3yuKM1coH8IJeAa/EvIq0Tg==}
 
   '@peculiar/asn1-android@2.4.0':
     resolution: {integrity: sha512-YFueREq97CLslZZBI8dKzis7jMfEHSLxM+nr0Zdx1POiXFLjqqwoY5s0F1UimdBiEw/iKlHey2m56MRDv7Jtyg==}
@@ -3482,6 +3488,10 @@ snapshots:
   '@oxc-project/runtime@0.82.2': {}
 
   '@oxc-project/types@0.82.2': {}
+
+  '@paralleldrive/cuid2@1.0.0':
+    dependencies:
+      '@noble/hashes': 1.8.0
 
   '@peculiar/asn1-android@2.4.0':
     dependencies:
