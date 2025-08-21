@@ -1,17 +1,16 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, User, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Send, User, Bot, Wifi, WifiOff } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { useParams } from 'next/navigation';
 import { trpc } from "@/utils/trpc";
 import { toast } from "sonner";
+import { useSocket } from "@/hooks/use-socket";
 
 export default function ChatPage() {
   const params = useParams<{ id: string }>();
@@ -26,23 +25,50 @@ export default function ChatPage() {
   // Get current user session
   const { data: session } = trpc.auth.getSession.useQuery();
 
-  const { messages, sendMessage } = useChat({
-    transport: new DefaultChatTransport({
-      api: `${process.env.NEXT_PUBLIC_SERVER_URL}/ai/${params.id}`, 
-    }),
-  });
+  // Get existing messages from database
+  const { data: existingMessages, isLoading: messagesLoading } = trpc.message.getMessages.useQuery(
+    { consultationId: params.id },
+    { enabled: !!params.id }
+  );
+
+  // Initialize socket connection
+  const { socket, isConnected, messages: socketMessages, sendMessage, joinConsultation } = useSocket(
+    params.id,
+    session?.user.id,
+    session?.user.name,
+    session?.user.role ?? "patient"
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Join consultation room when connected
+  useEffect(() => {
+    if (isConnected && params.id) {
+      joinConsultation(params.id);
+    }
+  }, [isConnected, params.id, joinConsultation]);
+
+  // Combine existing messages with real-time messages
+  const allMessages = [
+    ...(existingMessages || []),
+    ...socketMessages
+  ];
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [allMessages]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = input.trim();
     if (!text) return;
-    sendMessage({ text });
+
+    if (!isConnected) {
+      toast.error("Not connected to server. Please try again.");
+      return;
+    }
+
+    sendMessage(text);
     setInput("");
   };
 
@@ -82,6 +108,19 @@ export default function ChatPage() {
                 {consultation.description}
               </p>
             </div>
+            <div className="flex items-center gap-2">
+              {isConnected ? (
+                <div className="flex items-center gap-1 text-green-600">
+                  <Wifi className="h-4 w-4" />
+                  <span className="text-xs">Connected</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-red-600">
+                  <WifiOff className="h-4 w-4" />
+                  <span className="text-xs">Disconnected</span>
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
@@ -118,7 +157,7 @@ export default function ChatPage() {
       {/* Chat Messages */}
       <div className="flex-1 grid grid-rows-[1fr_auto] overflow-hidden">
         <div className="overflow-y-auto space-y-4 pb-4">
-          {messages.length === 0 ? (
+          {allMessages.length === 0 ? (
             <div className="text-center text-muted-foreground mt-8">
               <p className="mb-2">Welcome to your consultation chat!</p>
               <p className="text-sm">
@@ -129,29 +168,58 @@ export default function ChatPage() {
               </p>
             </div>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`p-3 rounded-lg ${message.role === "user"
-                  ? "bg-primary/10 ml-8"
-                  : "bg-secondary/20 mr-8"
-                  }`}
-              >
-                <p className="text-sm font-semibold mb-1">
-                  {message.role === "user" ? "You" : "AI Assistant"}
-                </p>
-                {message.parts?.map((part, index) => {
-                  if (part.type === "text") {
-                    return (
-                      <div key={index} className="whitespace-pre-wrap">
-                        {part.text}
+              allMessages.map((message) => {
+                const isCurrentUser = message.senderId === session?.user.id;
+                const isAI = message.messageType === 'ai';
+
+                return (
+                  <div
+                    key={`${message.id}-${message.createdAt}`}
+                    className={`flex gap-3 ${isCurrentUser && !isAI ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {!isCurrentUser && (
+                      <Avatar className="h-8 w-8 mt-1">
+                        <AvatarFallback>
+                          {isAI ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className={`max-w-[70%] ${isCurrentUser && !isAI ? 'order-first' : ''}`}>
+                      <div
+                        className={`p-3 rounded-lg ${isAI
+                          ? "bg-blue-50 border border-blue-200"
+                          : isCurrentUser
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary"
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs font-semibold">
+                            {isAI
+                              ? "AI Assistant"
+                              : isCurrentUser
+                                ? "You"
+                                : message.senderName || message.senderRole}
+                          </p>
+                          <span className="text-xs opacity-70">
+                            {new Date(message.createdAt).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <div className="whitespace-pre-wrap text-sm">
+                          {message.content}
+                        </div>
                       </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            ))
+                    </div>
+                    {isCurrentUser && !isAI && (
+                      <Avatar className="h-8 w-8 mt-1">
+                        <AvatarFallback>
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                );
+              })
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -172,12 +240,12 @@ export default function ChatPage() {
             className="flex-1"
             autoComplete="off"
             autoFocus
-            disabled={consultation.status === 'inactive'}
+            disabled={consultation.status === 'inactive' || !isConnected}
           />
           <Button
             type="submit"
             size="icon"
-            disabled={consultation.status === 'inactive'}
+            disabled={consultation.status === 'inactive' || !isConnected || !input.trim()}
           >
             <Send size={18} />
           </Button>

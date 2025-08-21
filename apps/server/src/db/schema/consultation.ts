@@ -23,7 +23,7 @@ export type MessageType = (typeof messageTypeEnum)[number];
 export const message = sqliteTable("message", {
   id: text("id").primaryKey(),
   consultationId: text("consultation_id").notNull().references(() => consultation.id),
-  senderId: text("sender_id").notNull().references(() => user.id),
+  senderId: text("sender_id").references(() => user.id), // Made nullable for AI messages
   content: text("content").notNull(),
   messageType: text("message_type", { enum: messageTypeEnum }).default("user"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
