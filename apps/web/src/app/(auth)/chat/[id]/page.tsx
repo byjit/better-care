@@ -46,40 +46,9 @@ export default function ChatPage() {
     setInput("");
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'active':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'inactive':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   if (consultationLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading consultation...</p>
-        </div>
-      </div>
+      <p>Loading...</p>
     );
   }
 
@@ -97,16 +66,15 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="min-h-[85vh] pb-4 relative flex flex-col">
       {/* Consultation Header */}
-      <Card className="mb-4 border-l-4 border-l-primary">
+      <Card className="mb-4">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="flex items-center gap-2">
                 {consultation.title}
-                <Badge className={`${getStatusColor(consultation.status ?? "")} flex items-center gap-1`}>
-                  {getStatusIcon(consultation.status ?? "")}
+                <Badge className={`flex items-center gap-1`}>
                   {consultation.status}
                 </Badge>
               </CardTitle>
@@ -191,7 +159,7 @@ export default function ChatPage() {
         {/* Message Input */}
         <form
           onSubmit={handleSubmit}
-          className="w-full flex items-center space-x-2 pt-2 border-t"
+          className="sticky bottom-0 left-0 w-full max-w-2xl mx-auto bg-background flex items-center space-x-2 pt-2 border-t px-4 z-30"
         >
           <Input
             name="prompt"
