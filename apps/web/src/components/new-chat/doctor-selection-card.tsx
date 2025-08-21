@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Star, User } from "lucide-react";
-import Link from "next/link";
+import { Star, User, ArrowRight } from "lucide-react";
 
 interface Doctor {
   id: string;
@@ -17,13 +16,14 @@ interface Doctor {
   };
 }
 
-interface DoctorCardProps {
+interface DoctorSelectionCardProps {
   doctor: Doctor;
+  onSelect: () => void;
 }
 
-export function DoctorCard({ doctor }: DoctorCardProps) {
+export function DoctorSelectionCard({ doctor, onSelect }: DoctorSelectionCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={onSelect}>
       <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16">
@@ -48,11 +48,9 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
               <span>{doctor.metadata.experience} years experience</span>
             </div>
           )}
-          <Button className="w-full" asChild>
-            <Link href={`/new-chat?doctorId=${doctor.id}`}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Start Consultation
-            </Link>
+          <Button className="w-full" onClick={(e) => { e.stopPropagation(); onSelect(); }}>
+            Select Doctor
+            <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
       </CardContent>

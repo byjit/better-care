@@ -19,18 +19,18 @@
   - Add role-based access control for consultation operations
   - _Requirements: 1.1, 1.2, 2.3, 2.4, 5.1, 5.2_
 
-- [ ] 4. Implement doctor consultation assignment system
+- [x] 4. Implement doctor consultation assignment system
   - Create consultation-doctor relationship management functions
   - Implement consultation status transition logic (pending → active → inactive)
   - Add validation for doctor assignment and status changes
   - Dont write tests
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 5.1, 5.2_
 
-- [ ] 5. Create consultation creation and doctor selection UI
+- [x] 5. Create consultation creation and doctor selection UI
   - Build consultation creation form component with problem description
   - Implement doctor selection interface with existing doctor list integration
   - Create consultation submission workflow that creates consultation and navigates to chat
-  - Add form validation and error handling
+  NOTE: Keep code modular, reuse as much as possible. Don't repeat yourself.
   - _Requirements: 1.1, 1.4, 2.1_
 
 - [ ] 6. Build role-based dashboard with consultation lists
