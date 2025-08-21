@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { relations } from "drizzle-orm";
 import { z } from "zod";
 import { createSelectSchema, createInsertSchema, createUpdateSchema } from 'drizzle-zod';
 
@@ -46,6 +47,16 @@ export const userUpdateSchema = createUpdateSchema(user, {
   metadata: metadataSchema,
 });
 
+export const userRelations = relations(user, ({ many }) => ({
+  patientConsultations: many(consultation, { relationName: "patient_consultations" }),
+  doctorConsultations: many(consultation, { relationName: "doctor_consultations" }),
+  messages: many(message),
+}));
+
 export type User = z.infer<typeof userSelectSchema>;
 export type NewUser = z.infer<typeof userInsertSchema>;
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
+
+// Import consultation and message here to avoid circular dependency issues
+import { consultation } from "./consultation";
+import { message } from "./message";

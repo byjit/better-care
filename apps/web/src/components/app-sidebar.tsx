@@ -30,11 +30,6 @@ const data = {
       icon: LayoutPanelLeft,
     },
     {
-      title: "New Chat",
-      url: "/ai",
-      icon: SquarePen,
-    },
-    {
       title: "Doctors",
       url: "/doctors",
       icon: Search,
