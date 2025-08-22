@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1755682397793,
-      "tag": "0000_zippy_jane_foster",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1755686028394,
-      "tag": "0001_typical_jean_grey",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1755702411321,
-      "tag": "0002_needy_frightful_four",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1755770390432,
-      "tag": "0003_handy_vance_astro",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1755772969849,
-      "tag": "0004_loving_psynapse",
+      "when": 1755848697497,
+      "tag": "0000_fluffy_thunderbird",
       "breakpoints": true
     }
   ]
