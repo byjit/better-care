@@ -183,7 +183,7 @@ export default function ChatPage() {
 
       {/* Chat Messages */}
       <div className="flex-1 grid grid-rows-[1fr_auto] overflow-hidden">
-        <div className="overflow-y-auto space-y-4 pb-4">
+        <div className="overflow-y-auto max-h-[calc(50vh)] space-y-4 pb-4">
           {allMessages.length === 0 ? (
             <div className="text-center text-muted-foreground mt-8">
               <p className="mb-2">Welcome to your consultation chat!</p>
